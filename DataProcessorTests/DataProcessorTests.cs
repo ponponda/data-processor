@@ -26,5 +26,26 @@ namespace DataProcessor.Tests {
             };
             Assert.AreEqual(1, DataProcessor.Load(source, options).TotalCount);
         }
+
+        [Test()]
+        public void Select() {
+            var options = new TestLoadOption {
+                Select = new[] { "Id" },
+            };
+
+            var count = DataProcessor.Load(source, options).Data.Cast<MockData>().Count(e => e.Name != null);
+            Assert.AreEqual(0, count);
+        }
+
+        [Test()]
+        public void Sort() {
+            var options = new TestLoadOption {
+                Sort = "Id",
+                SortDescending = true
+            };
+
+            var firstId = DataProcessor.Load(source, options).Data.Cast<MockData>().First().Id;
+            Assert.AreEqual(2, firstId);
+        }
     }
 }
