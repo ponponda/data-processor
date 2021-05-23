@@ -7,11 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace DataProcessor.Handler {
-    public class SortExpressionHandler {
-        readonly Type ItemType;
-        public SortExpressionHandler(Type type) {
-            ItemType = type;
-        }
+    class SortExpressionHandler : ExpressionHandler {
+        public SortExpressionHandler(Type itemType) : base(itemType) { }
+
 
         public LambdaExpression Build(string sort) {
             var sourceExpr = Expression.Parameter(ItemType, "obj");

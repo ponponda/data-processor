@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DataProcessor.Utility;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,17 +9,14 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace DataProcessor.Handler {
-    class FilterExpressionHandler {
+    class FilterExpressionHandler : ExpressionHandler {
         const string
          OPERATION_CONTAINS = "contains",
          OPERATION_NOT_CONTAINS = "notcontains",
          OPERATION_STARTS_WITH = "startswith",
          OPERATION_ENDS_WITH = "endswith";
 
-        readonly Type ItemType;
-        public FilterExpressionHandler(Type type) {
-            ItemType = type;
-        }
+        public FilterExpressionHandler(Type itemType) : base(itemType) { }
 
         public LambdaExpression Build(IList filterJson) {
             var sourceExpr = Expression.Parameter(ItemType, "obj");
@@ -74,7 +72,7 @@ namespace DataProcessor.Handler {
             var isStringOperation = OPERATION_CONTAINS == oper || OPERATION_NOT_CONTAINS == oper || OPERATION_STARTS_WITH == oper || OPERATION_ENDS_WITH == oper;
 
 
-            var fieldExpr = Expression.PropertyOrField(sourceExpr, field);
+            var fieldExpr = ApplyNullGuard(sourceExpr, field);
             var valueExpr = Expression.Constant(value, fieldExpr.Type);
 
             if(isStringOperation) {
@@ -94,7 +92,7 @@ namespace DataProcessor.Handler {
 
             var method = typeof(string).GetMethod(GetStringOperationMethod(oper), new[] { typeof(string) });
 
-            Expression result =  Expression.Call(fieldExpr, method, valueExpr);
+            Expression result = Expression.Call(fieldExpr, method, valueExpr);
             if(invert) result = Expression.Not(result);
             return result;
         }

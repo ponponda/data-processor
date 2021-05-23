@@ -12,11 +12,13 @@ namespace DataProcessor {
         }
 
         public Task<LoadResult> ExecuteAsync() {
-            var expression = new DataSourceExpressionBuilder(DataSource.Expression, Context).BuildExpression();
+            var expression = new DataSourceExpressionBuilder(DataSource.Expression, Context).BuildLoadExpression();
             var data = DataSource.Provider.CreateQuery<T>(expression);
+            var countExpression = new DataSourceExpressionBuilder(DataSource.Expression, Context).BuildCountExpression();
+            var count = DataSource.Provider.Execute<int>(countExpression);
             return Task.FromResult(new LoadResult {
                 Data = data,
-                TotalCount = data.Count()
+                TotalCount = count
             });
         }
     }

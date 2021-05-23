@@ -10,21 +10,15 @@ using System.Linq.Expressions;
 namespace DataProcessor.Handler.Tests {
     [TestFixture()]
     public class SelectExpressionHandlerTests {
-        class MockData {
-            public int IntProp { get; set; }
-            public string StringProp { get; set; }
-            public int? NullableProp { get; set; }
-            public DateTime DateProp { get; set; }
-        }
-
-        LambdaExpression Build(string[] select) {
-            return new SelectExpressionHandler(typeof(MockData)).Build(select);
+        LambdaExpression Build(params string[] select) {
+            return new SelectExpressionHandler(typeof(Tuple<string>)).Build(select);
         }
 
         [Test()]
         public void Select() {
-            var expr = Build(new[] { "IntProp", "StringProp" });
-            Assert.AreEqual(expr.Body.ToString(), "new MockData() {IntProp = obj.IntProp, StringProp = obj.StringProp}");
+            var expr = Build("Item1");
+            Assert.AreEqual(expr.Body.ToString(), "new Item1;String;() {Item1 = IIF((obj == null), null, obj.Item1)}");
+
         }
     }
 }

@@ -13,11 +13,17 @@ namespace DataProcessor {
             Context = context;
         }
 
-        public Expression BuildExpression() {
+        public Expression BuildLoadExpression() {
             AddFilter();
             AddSort();
             AddSelect();
             AddPaging();
+            return Expression;
+        }
+
+        public Expression BuildCountExpression() {
+            AddFilter();
+            AddCount();
             return Expression;
         }
 
@@ -47,12 +53,14 @@ namespace DataProcessor {
         void AddSelect() {
             if(Context.HasSelect) {
                 var type = GetGenerictTypes()[0];
+                var ee = new SelectExpressionHandler(GetGenerictTypes().First()).Build(Context.Select);
                 Expression = Expression.Call(
                     typeof(Queryable),
                     nameof(Queryable.Select),
-                    new[] { type, type },
+                    new[] { type, ee.ReturnType },
                     Expression,
-                    Expression.Quote(new SelectExpressionHandler(GetGenerictTypes().First()).Build(Context.Select)));
+                    Expression.Quote(ee)
+                    );
             }
         }
 
@@ -63,7 +71,13 @@ namespace DataProcessor {
                 Expression = QueryableCall(nameof(Queryable.Take), Expression.Constant(Context.Take));
         }
 
-        Expression QueryableCall(string method, Expression arg) => Expression.Call(typeof(Queryable), method, GetGenerictTypes(), Expression, arg);
+        void AddCount() {
+            Expression = QueryableCall(nameof(Queryable.Count));
+        }
+
+        Expression QueryableCall(string method) => Expression.Call(typeof(Queryable), method, GetGenerictTypes(), Expression);
+
+        Expression QueryableCall(string method, Expression arg) => Expression.Call(typeof(Queryable), method, GetGenerictTypes(), Expression, arg ?? Expression.Empty());
 
         Type[] GetGenerictTypes() {
             const string queryable1 = "IQueryable`1";
