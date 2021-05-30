@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using DataProcessor.Dto;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,7 +14,7 @@ namespace DataProcessor {
 
         public Task<LoadResult> ExecuteAsync() {
             var expression = new DataSourceExpressionBuilder(DataSource.Expression, Context).BuildLoadExpression();
-            var data = DataSource.Provider.CreateQuery<T>(expression);
+            var data = DataSource.Provider.CreateQuery(expression);
             var countExpression = new DataSourceExpressionBuilder(DataSource.Expression, Context).BuildCountExpression();
             var count = DataSource.Provider.Execute<int>(countExpression);
             return Task.FromResult(new LoadResult {

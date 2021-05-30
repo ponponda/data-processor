@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.31205.134
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataProcessor", "DataProcessor\DataProcessor.csproj", "{CEBB6415-4F5E-4D2B-BD12-091D7B2F0964}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataProcessorTests", "DataProcessorTests\DataProcessorTests.csproj", "{D5864AD8-A8CD-4D60-A0BC-37A61DC2DAC2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataProcessor.Tests", "DataProcessorTests\DataProcessor.Tests.csproj", "{D5864AD8-A8CD-4D60-A0BC-37A61DC2DAC2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

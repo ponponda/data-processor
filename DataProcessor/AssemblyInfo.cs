@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 #if DEBUG
 
-[assembly: InternalsVisibleTo("DataProcessorTests")]
+[assembly: InternalsVisibleTo("DataProcessor.Tests")]
 
 #endif
 

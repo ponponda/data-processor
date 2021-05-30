@@ -1,6 +1,6 @@
-﻿using System.Collections;
+﻿using DataProcessor.Dto;
 
-namespace DataProcessor {
+namespace DataProcessor.Tests {
     public class TestLoadOption : DataSourceLoadOption {
     }
 }

@@ -1,23 +1,40 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Dynamic;
+﻿using DataProcessor.Dto;
+using System;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DataProcessor.Handler {
     class SortExpressionHandler : ExpressionHandler {
-        public SortExpressionHandler(Type itemType) : base(itemType) { }
-
-
-        public LambdaExpression Build(string sort) {
-            var sourceExpr = Expression.Parameter(ItemType, "obj");
-            return Expression.Lambda(BuildCore(sort, sourceExpr), sourceExpr);
+        public SortExpressionHandler(Type itemType) : base(itemType) {
         }
 
-        Expression BuildCore(string sort, ParameterExpression sourceExpr) {
-            return Expression.PropertyOrField(sourceExpr, sort);
+        /// <summary>
+        /// Generate expression: 
+        /// obj.OrderBy[Descending](obj => obj.sortings[0])
+        /// .ThenBy[Descending](obj => obj.sortings[1])
+        /// </summary>
+        /// <param name="sortings"></param>
+        /// <param name="expr"></param>
+        /// <returns></returns>
+        public Expression Build(SortingInfo[] sortings, Expression expr) {
+            var sourceExpr = Expression.Parameter(ItemType, "obj");
+
+            var doOrder = false;
+            foreach(var info in sortings) {
+                var memberExpr = Expression.Lambda(Expression.PropertyOrField(sourceExpr, info.Field), sourceExpr);
+                var method = doOrder ?
+                    info.Desc ? nameof(Queryable.ThenByDescending) : nameof(Queryable.ThenBy) :
+                    info.Desc ? nameof(Queryable.OrderByDescending) : nameof(Queryable.OrderBy);
+                expr = Expression.Call(
+                    typeof(Queryable),
+                    method,
+                    new Type[] { ItemType, memberExpr.ReturnType },
+                    expr,
+                    Expression.Quote(memberExpr)
+                    );
+                doOrder = true;
+            }
+            return expr;
         }
     }
 }

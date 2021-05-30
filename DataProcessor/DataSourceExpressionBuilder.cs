@@ -17,6 +17,7 @@ namespace DataProcessor {
             AddFilter();
             AddSort();
             AddSelect();
+            AddGroup();
             AddPaging();
             return Expression;
         }
@@ -38,29 +39,21 @@ namespace DataProcessor {
 
         void AddSort() {
             if(Context.HasSort) {
-                var type = GetGenerictTypes()[0];
-                var method = Context.SortDescending ? nameof(Queryable.OrderByDescending) : nameof(Queryable.OrderBy);
-                var r = new SortExpressionHandler(GetGenerictTypes().First()).Build(Context.Sort);
-                Expression = Expression.Call(
-                    typeof(Queryable),
-                    method,
-                    new[] { type, r.ReturnType },
-                    Expression,
-                    Expression.Quote(r));
+                Expression = new SortExpressionHandler(GetGenerictTypes().First()).Build(Context.Sort, Expression);
             }
         }
 
         void AddSelect() {
             if(Context.HasSelect) {
                 var type = GetGenerictTypes()[0];
-                var ee = new SelectExpressionHandler(GetGenerictTypes().First()).Build(Context.Select);
-                Expression = Expression.Call(
-                    typeof(Queryable),
-                    nameof(Queryable.Select),
-                    new[] { type, ee.ReturnType },
-                    Expression,
-                    Expression.Quote(ee)
-                    );
+                var expr = new SelectExpressionHandler(GetGenerictTypes().First()).Build(Context.Select);
+                Expression = QueryableCall(nameof(Queryable.Select), new Type[] { type, expr.ReturnType }, Expression.Quote(expr));
+            }
+        }
+
+        void AddGroup() {
+            if(Context.HasGroup) {
+                Expression = new GroupExpressionHandler(GetGenerictTypes().First()).Build(Context.Group, Expression);
             }
         }
 
@@ -77,7 +70,10 @@ namespace DataProcessor {
 
         Expression QueryableCall(string method) => Expression.Call(typeof(Queryable), method, GetGenerictTypes(), Expression);
 
-        Expression QueryableCall(string method, Expression arg) => Expression.Call(typeof(Queryable), method, GetGenerictTypes(), Expression, arg ?? Expression.Empty());
+        Expression QueryableCall(string method, Type[] types, Expression arg) => Expression.Call(typeof(Queryable), method, types, Expression, arg);
+
+        Expression QueryableCall(string method, Expression arg) => QueryableCall(method,  GetGenerictTypes(), arg);
+
 
         Type[] GetGenerictTypes() {
             const string queryable1 = "IQueryable`1";

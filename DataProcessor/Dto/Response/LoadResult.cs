@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Collections;
 
-namespace DataProcessor {
+namespace DataProcessor.Dto {
     public class LoadResult {
         [JsonProperty("totalCount")]
         public int TotalCount { get; set; }

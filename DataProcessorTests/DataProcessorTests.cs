@@ -1,10 +1,8 @@
 ﻿using NUnit.Framework;
-using DataProcessor;
+using DataProcessor.Dto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DataProcessor.Tests {
     [TestFixture()]
@@ -37,7 +35,7 @@ namespace DataProcessor.Tests {
         [Test()]
         public void Load() {
             var u = source.Select(e => new { e.Id, c = e.Child.Id });
-            Assert.AreEqual(1, DataProcessor.Load(source, new TestLoadOption {
+            Assert.AreEqual(1, DataProcessor.Load(source, new DataSourceLoadOption {
                 Filter = new object[] { new object[] { "Id", "=", 2 }, new object[] { "Child.Id", "=", 2 } },
             }).TotalCount);
             //Assert.AreEqual(1, DataProcessor.Load(source, new TestLoadOption {
@@ -65,10 +63,20 @@ namespace DataProcessor.Tests {
         }
 
         [Test()]
+        public void Group() {
+            var options = new TestLoadOption {
+                Group = new[] { "Id" },
+            };
+            var groups = DataProcessor.Load(source, options).Data.Cast<GroupResult>();
+            Assert.AreEqual(1, groups.First().Key);
+        }
+
+        [Test()]
         public void Sort() {
             var options = new TestLoadOption {
-                Sort = "Id",
-                SortDescending = true
+                Sort = new[] {
+                    new SortingInfo { Field = "Id", Desc = true }
+                },
             };
 
             var firstId = DataProcessor.Load(source, options).Data.Cast<MockData>().First().Id;
