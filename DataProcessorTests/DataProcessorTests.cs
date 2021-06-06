@@ -34,7 +34,6 @@ namespace DataProcessor.Tests {
 
         [Test()]
         public void Load() {
-            var u = source.Select(e => new { e.Id, c = e.Child.Id });
             Assert.AreEqual(1, DataProcessor.Load(source, new DataSourceLoadOption {
                 Filter = new object[] { new object[] { "Id", "=", 2 }, new object[] { "Child.Id", "=", 2 } },
             }).TotalCount);

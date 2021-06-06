@@ -19,7 +19,7 @@ namespace DataProcessor.Handler {
         public FilterExpressionHandler(Type itemType) : base(itemType) { }
 
         public LambdaExpression Build(IList filterJson) {
-            var sourceExpr = Expression.Parameter(ItemType, "obj");
+            var sourceExpr = CreateItemParam();
             return Expression.Lambda(BuildCore(filterJson, sourceExpr), sourceExpr);
         }
 

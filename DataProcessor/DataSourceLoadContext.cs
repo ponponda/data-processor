@@ -32,7 +32,7 @@ namespace DataProcessor {
         public bool HasPaging => Skip > 0 || Take > 0;
     }
 
-    // seleect
+    // select
     partial class DataSourceLoadContext {
         public string[] Select => Options.Select;
         public bool HasSelect => !IsEmpty(Select);
@@ -42,5 +42,11 @@ namespace DataProcessor {
     partial class DataSourceLoadContext {
         public SortingInfo[] Sort => Options.Sort;
         public bool HasSort => !IsEmpty(Sort);
+    }
+
+    // summary
+    partial class DataSourceLoadContext {
+        public SummaryInfo[] Summary => Options.Summary;
+        public bool HasSummary => !IsEmpty(Summary);
     }
 }

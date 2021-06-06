@@ -13,12 +13,13 @@ namespace DataProcessor {
             Context = context;
         }
 
-        public Expression BuildLoadExpression() {
+        public Expression BuildLoadExpression(bool paginate) {
             AddFilter();
             AddSort();
             AddSelect();
             AddGroup();
-            AddPaging();
+            if(paginate)
+                AddPaging();
             return Expression;
         }
 
@@ -72,7 +73,7 @@ namespace DataProcessor {
 
         Expression QueryableCall(string method, Type[] types, Expression arg) => Expression.Call(typeof(Queryable), method, types, Expression, arg);
 
-        Expression QueryableCall(string method, Expression arg) => QueryableCall(method,  GetGenerictTypes(), arg);
+        Expression QueryableCall(string method, Expression arg) => QueryableCall(method, GetGenerictTypes(), arg);
 
 
         Type[] GetGenerictTypes() {

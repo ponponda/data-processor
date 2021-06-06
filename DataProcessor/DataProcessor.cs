@@ -10,7 +10,7 @@ namespace DataProcessor {
 
         public static LoadResult Load<T>(IQueryable<T> dataSource, DataSourceLoadOption option) => LoadAsync(dataSource.AsQueryable(), option).GetAwaiter().GetResult();
 
-        private static Task<LoadResult> LoadAsync<T>(IQueryable<T> dataSource, DataSourceLoadOption option, CancellationToken ct = default(CancellationToken)) =>
+        public static Task<LoadResult> LoadAsync<T>(IQueryable<T> dataSource, DataSourceLoadOption option, CancellationToken ct = default(CancellationToken)) =>
             new DataSourceExecutor<T>(dataSource, option, ct).ExecuteAsync();
     }
 }

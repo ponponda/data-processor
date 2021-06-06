@@ -11,7 +11,7 @@ namespace DataProcessor.Handler {
 
 
         public LambdaExpression Build(string[] select) {
-            var sourceExpr = Expression.Parameter(ItemType, "obj");
+            var sourceExpr = CreateItemParam();
             return Expression.Lambda(BuildCore(select, sourceExpr), sourceExpr);
         }
 

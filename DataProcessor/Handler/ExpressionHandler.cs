@@ -35,5 +35,7 @@ namespace DataProcessor.Handler {
                 falsyExpression ?? Expression.Constant(TypeUtility.GetDefaultValue(current.Type), current.Type),
                 truthyExpression ?? current);
         }
+
+        protected ParameterExpression CreateItemParam() => Expression.Parameter(ItemType, "obj");
     }
 }

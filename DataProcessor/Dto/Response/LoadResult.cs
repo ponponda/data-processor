@@ -7,5 +7,7 @@ namespace DataProcessor.Dto {
         public int TotalCount { get; set; }
         [JsonProperty("data")]
         public IEnumerable Data { get; set; }
+        [JsonProperty("summary", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public object[] Summary { get; set; }
     }
 }

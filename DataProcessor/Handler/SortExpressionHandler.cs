@@ -17,7 +17,7 @@ namespace DataProcessor.Handler {
         /// <param name="expr"></param>
         /// <returns></returns>
         public Expression Build(SortingInfo[] sortings, Expression expr) {
-            var sourceExpr = Expression.Parameter(ItemType, "obj");
+            var sourceExpr = CreateItemParam();
 
             var doOrder = false;
             foreach(var info in sortings) {
