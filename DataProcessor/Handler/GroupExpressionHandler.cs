@@ -6,7 +6,26 @@ using System.Linq.Expressions;
 
 namespace DataProcessor.Handler {
     class GroupExpressionHandler : ExpressionHandler {
-        public GroupExpressionHandler(Type itemType) : base(itemType) { }
+        private string[] Fields;
+        private SummaryInfo[] GroupSummaries = new SummaryInfo[0];
+        private List<ParameterExpression> ParameterExpressions = new List<ParameterExpression>();
+
+        public GroupExpressionHandler(Type itemType, string[] fields) : base(itemType) {
+            Fields = fields;
+
+            // predefined available parameters
+            var dataItem = CreateItemParam();
+            for(var i = 0; i < Fields.Length; i++) {
+                var f = Fields[Fields.Length - 1 - i];
+                var member = Expression.PropertyOrField(dataItem, f);
+                var groupType = typeof(IGrouping<,>).MakeGenericType(member.Type, ItemType);
+                ParameterExpressions.Add(Expression.Parameter(groupType, "g" + i));
+            }
+        }
+
+        public GroupExpressionHandler(Type itemType, string[] fields, SummaryInfo[] groupSummaries) : this(itemType, fields) {
+            GroupSummaries = groupSummaries;
+        }
 
         /// <summary>
         /// Generate expression from the inside out 
@@ -17,45 +36,54 @@ namespace DataProcessor.Handler {
         ///         new Group { Key = g2.Key, Items = g2 })
         /// })
         /// </summary>
+        /// <param name="sourceExpr">given data source</param>
         /// <param name="fields"></param>
-        /// <param name="expr">data provider expression</param>
         /// <returns></returns>
-        // TODO: nested fields, data provider create query broke due to group by turns queryable  into enumerable
-        public Expression Build(string[] fields, Expression expr) {
-            var index = fields.Length;
+        public Expression Build(Expression sourceExpr) {
+            var index = 0;
             Expression result = null;
-            foreach(var f in fields.Reverse()) {
-                var memberParam = Expression.Parameter(ItemType, "g" + index);
-                var memberLambda = Expression.Lambda(Expression.PropertyOrField(memberParam, f), memberParam);
+            foreach(var f in Fields.Reverse()) {
+                var dataItem = CreateItemParam("g" + index);
+                var member = Expression.Lambda(Expression.PropertyOrField(dataItem, f), dataItem);
 
-                var groupType = typeof(IGrouping<,>).MakeGenericType(memberLambda.ReturnType, ItemType);
-                var selectParam = Expression.Parameter(groupType, "g" + index);
-                var selectLambda = Expression.Lambda(
-                    CreateNewGroup(
-                        Expression.Convert(Expression.PropertyOrField(selectParam, "Key"), typeof(object)),
-                        result ?? selectParam),
-                    selectParam
-                    );
+                var parameter = ParameterExpressions.ElementAt(index);
 
-                // group by
-                //if(index == 1) {
-                    result = Expression.Call(typeof(Queryable), nameof(Queryable.GroupBy), new Type[] { ItemType, memberLambda.ReturnType }, expr, memberLambda);
-                //} else {
-                //    result = Expression.Call(typeof(Enumerable), nameof(Enumerable.GroupBy), new Type[] { ItemType, memberLambda.ReturnType }, Expression.Parameter(groupType, "g" + --index), memberLambda);
-                //}
+                // group result
+                var groupResult = BuildGroup(parameter, result);
 
-                // select to group result
-                result = Expression.Call(typeof(Queryable), nameof(Queryable.Select), new Type[] { result.Type.GenericTypeArguments[0], selectLambda.ReturnType }, result, selectLambda);
+                index++;
+                var last = index == Fields.Length;
+                // group
+                if(last) {
+                    result = EnumerableCall(nameof(Enumerable.GroupBy), new Type[] { ItemType, member.ReturnType }, sourceExpr, member);
+                } else {
+                    parameter = ParameterExpressions.ElementAt(index);
+                    result = EnumerableCall(nameof(Enumerable.GroupBy), new Type[] { ItemType, member.ReturnType }, parameter, member);
+                }
+
+                result = EnumerableCall(nameof(Enumerable.Select), new Type[] { result.Type.GenericTypeArguments[0], groupResult.ReturnType }, result, groupResult);
             }
 
             return result;
         }
 
-        Expression CreateNewGroup(params Expression[] expr) {
+        private LambdaExpression BuildGroup(ParameterExpression parameter, Expression arg = null) {
+            var summaryExpr = new AggregateExpressionHandler(ItemType, GroupSummaries).Build(parameter);
+            return Expression.Lambda(ToGroupResult(
+                 Expression.Convert(Expression.PropertyOrField(parameter, "Key"), typeof(object)),
+                 arg ?? parameter,
+                 summaryExpr
+                ),
+            parameter
+            );
+        }
+
+        private Expression ToGroupResult(params Expression[] expr) {
             var bindings = new List<MemberBinding>();
 
             bindings.Add(Expression.Bind(typeof(GroupResult).GetProperty("Key"), expr[0]));
             bindings.Add(Expression.Bind(typeof(GroupResult).GetProperty("Items"), expr[1]));
+            bindings.Add(Expression.Bind(typeof(GroupResult).GetProperty("Summary"), expr[2]));
 
             return Expression.MemberInit(Expression.New(typeof(GroupResult)), bindings);
         }

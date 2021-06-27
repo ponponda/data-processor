@@ -35,22 +35,22 @@ namespace DataProcessor.Aggregators {
             List<Aggregator<T>> aggregators = new List<Aggregator<T>>();
             var sourceExpr = CreateItemParam();
             foreach(var item in summaries) {
-                var u = Expression.Lambda<Func<T, object>>(Expression.Convert(ApplyNullGuard(sourceExpr, item.Field), typeof(object)), sourceExpr);
+                var expr = Expression.Lambda<Func<T, object>>(Expression.Convert(ApplyNullGuard(sourceExpr, item.Field), typeof(object)), sourceExpr);
                 switch(item.Type) {
                     case "avg":
-                        aggregators.Add(new AvgAggregator<T>(u));
+                        aggregators.Add(new AvgAggregator<T>(expr));
                         break;
                     case "count":
-                        aggregators.Add(new CountAggregator<T>(u));
+                        aggregators.Add(new CountAggregator<T>(expr));
                         break;
                     case "max":
-                        aggregators.Add(new MaxAggregator<T>(u));
+                        aggregators.Add(new MaxAggregator<T>(expr));
                         break;
                     case "min":
-                        aggregators.Add(new MinAggregator<T>(u));
+                        aggregators.Add(new MinAggregator<T>(expr));
                         break;
                     case "sum":
-                        aggregators.Add(new SumAggregator<T>(u));
+                        aggregators.Add(new SumAggregator<T>(expr));
                         break;
                     default:
                         continue;

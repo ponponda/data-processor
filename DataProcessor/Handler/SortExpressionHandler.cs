@@ -14,27 +14,21 @@ namespace DataProcessor.Handler {
         /// .ThenBy[Descending](obj => obj.sortings[1])
         /// </summary>
         /// <param name="sortings"></param>
-        /// <param name="expr"></param>
+        /// <param name="sourceExpr">given data source</param>
         /// <returns></returns>
-        public Expression Build(SortingInfo[] sortings, Expression expr) {
-            var sourceExpr = CreateItemParam();
+        public Expression Build(Expression sourceExpr, SortingInfo[] sortings) {
+            var dataItem = CreateItemParam();
 
             var doOrder = false;
             foreach(var info in sortings) {
-                var memberExpr = Expression.Lambda(Expression.PropertyOrField(sourceExpr, info.Field), sourceExpr);
+                var memberExpr = Expression.Lambda(Expression.PropertyOrField(dataItem, info.Field), dataItem);
                 var method = doOrder ?
                     info.Desc ? nameof(Queryable.ThenByDescending) : nameof(Queryable.ThenBy) :
                     info.Desc ? nameof(Queryable.OrderByDescending) : nameof(Queryable.OrderBy);
-                expr = Expression.Call(
-                    typeof(Queryable),
-                    method,
-                    new Type[] { ItemType, memberExpr.ReturnType },
-                    expr,
-                    Expression.Quote(memberExpr)
-                    );
+                sourceExpr = QueryableCall(method, sourceExpr, memberExpr);
                 doOrder = true;
             }
-            return expr;
+            return sourceExpr;
         }
     }
 }

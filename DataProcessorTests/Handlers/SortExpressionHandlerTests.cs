@@ -7,13 +7,9 @@ using DataProcessor.Dto;
 
 namespace DataProcessor.Tests.Handlers {
     [TestFixture()]
-    public class SortExpressionHandlerTests {
-        ParameterExpression CreateTargetParam<T>() {
-            return Expression.Parameter(typeof(IQueryable<T>), "obj");
-        }
-
+    public class SortExpressionHandlerTests : TestExpressionHandler {
         Expression Build(SortingInfo[] sortings) {
-            return new SortExpressionHandler(typeof(MockData)).Build(sortings, CreateTargetParam<MockData>());
+            return new SortExpressionHandler(typeof(MockData)).Build(CreateTargetParam<MockData>(), sortings);
         }
 
         [Test()]

@@ -9,10 +9,9 @@ namespace DataProcessor.Handler {
     class SelectExpressionHandler : ExpressionHandler {
         public SelectExpressionHandler(Type itemType) : base(itemType) { }
 
-
-        public LambdaExpression Build(string[] select) {
-            var sourceExpr = CreateItemParam();
-            return Expression.Lambda(BuildCore(select, sourceExpr), sourceExpr);
+        public Expression Build(Expression sourceExpr, string[] select) {
+            var dataItem = CreateItemParam();
+            return QueryableCall(nameof(Queryable.Select), sourceExpr, Expression.Lambda(BuildCore(select, dataItem), dataItem));
         }
 
         /// <summary>

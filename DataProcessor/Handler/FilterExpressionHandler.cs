@@ -18,9 +18,14 @@ namespace DataProcessor.Handler {
 
         public FilterExpressionHandler(Type itemType) : base(itemType) { }
 
-        public LambdaExpression Build(IList filterJson) {
-            var sourceExpr = CreateItemParam();
-            return Expression.Lambda(BuildCore(filterJson, sourceExpr), sourceExpr);
+        public Expression Build(Expression sourceExpr, IList filterJson) {
+            var dataItem = CreateItemParam();
+
+            return QueryableCall(
+                   nameof(Queryable.Where),
+                   sourceExpr,
+                   Expression.Quote(
+                       Expression.Lambda(BuildCore(filterJson, dataItem), dataItem)));
         }
 
         Expression BuildCore(IList filterJson, ParameterExpression sourceExpr) {

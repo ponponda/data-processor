@@ -31,30 +31,25 @@ namespace DataProcessor {
 
         void AddFilter() {
             if(Context.HasFilter) {
-                Expression = QueryableCall(
-                    nameof(Queryable.Where),
-                    Expression.Quote(
-                        new FilterExpressionHandler(GetGenerictTypes().First()).Build(Context.Filter)));
+                Expression = new FilterExpressionHandler(GetItemType()).Build(Expression, Context.Filter);
             }
         }
 
         void AddSort() {
             if(Context.HasSort) {
-                Expression = new SortExpressionHandler(GetGenerictTypes().First()).Build(Context.Sort, Expression);
+                Expression = new SortExpressionHandler(GetItemType()).Build(Expression, Context.Sort);
             }
         }
 
         void AddSelect() {
             if(Context.HasSelect) {
-                var type = GetGenerictTypes()[0];
-                var expr = new SelectExpressionHandler(GetGenerictTypes().First()).Build(Context.Select);
-                Expression = QueryableCall(nameof(Queryable.Select), new Type[] { type, expr.ReturnType }, Expression.Quote(expr));
+                Expression = new SelectExpressionHandler(GetItemType()).Build(Expression, Context.Select);
             }
         }
 
         void AddGroup() {
             if(Context.HasGroup) {
-                Expression = new GroupExpressionHandler(GetGenerictTypes().First()).Build(Context.Group, Expression);
+                Expression = new GroupExpressionHandler(GetItemType(), Context.Group, Context.GroupSummary).Build(Expression);
             }
         }
 
@@ -80,10 +75,12 @@ namespace DataProcessor {
             const string queryable1 = "IQueryable`1";
             var type = Expression.Type;
 
-            //if(type.IsInterface && type.Name == queryable1)
-            return type.GenericTypeArguments;
+            if(type.IsInterface && type.Name == queryable1)
+                return type.GenericTypeArguments;
 
-            //return type.GetInterface(queryable1).GenericTypeArguments;
+            return type.GetInterface(queryable1).GenericTypeArguments;
         }
+
+        Type GetItemType() => GetGenerictTypes().First();
     }
 }

@@ -9,7 +9,14 @@ namespace DataProcessor.Dto {
         public string[] Select { get; set; }
         public string[] Group { get; set; }
         public SortingInfo[] Sort { get; set; }
+        /// <summary>
+        /// A total summary expression
+        /// </summary>
         public SummaryInfo[] Summary { get; set; }
+        /// <summary>
+        /// A group summary expression
+        /// </summary>
+        public SummaryInfo[] GroupSummary { get; set; }
         public int? Skip { get; set; }
         public int? Take { get; set; }
     }

@@ -32,10 +32,46 @@ namespace DataProcessor.Handler {
             }
             return Expression.Condition(
                 condition,
-                falsyExpression ?? Expression.Constant(TypeUtility.GetDefaultValue(current.Type), current.Type),
+                falsyExpression ?? Expression.Constant(Utility.TypeUtility.GetDefaultValue(current.Type), current.Type),
                 truthyExpression ?? current);
         }
 
-        protected ParameterExpression CreateItemParam() => Expression.Parameter(ItemType, "obj");
+        protected ParameterExpression CreateItemParam(string alias = "obj") => Expression.Parameter(ItemType, alias);
+
+        protected Expression QueryableCall(string method, Expression sourceExpr, Expression arg) {
+            var types = new List<Type>();
+            types.AddRange(GetGenerictTypes(sourceExpr.Type));
+            if(arg.NodeType == ExpressionType.Lambda) {
+                types.Add(((LambdaExpression)arg).ReturnType);
+            }
+            return Expression.Call(typeof(Queryable), method, types.ToArray(), sourceExpr, arg);
+        }
+
+        protected Expression EnumerableCall(string method, Expression sourceExpr, Expression arg) {
+            var types = new List<Type>();
+            types.AddRange(GetGenerictTypes(sourceExpr.Type));
+            if(arg.NodeType == ExpressionType.Lambda) {
+                types.Add(((LambdaExpression)arg).ReturnType);
+            }
+            return Expression.Call(typeof(Enumerable), method, types.ToArray(), sourceExpr, arg);
+        }
+
+        protected Expression EnumerableCall(string method, Type[] types, Expression sourceExpr) {
+            return Expression.Call(typeof(Enumerable), method, types, sourceExpr);
+        }
+
+        protected Expression EnumerableCall(string method, Type[] types, Expression sourceExpr, Expression arg) {
+            return Expression.Call(typeof(Enumerable), method, types, sourceExpr, arg);
+        }
+
+        Type[] GetGenerictTypes(Type type) {
+            const string queryable1 = "IQueryable`1";
+            const string grouping2 = "IGrouping`2";
+
+            if(type.IsInterface && (type.Name == queryable1 || type.Name == grouping2))
+                return type.GenericTypeArguments;
+
+            return type.GetInterface(queryable1).GenericTypeArguments;
+        }
     }
 }

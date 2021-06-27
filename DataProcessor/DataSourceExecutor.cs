@@ -21,15 +21,15 @@ namespace DataProcessor {
             var result = new LoadResult();
             var deferPaging = Context.HasSummary;
             var expression = new DataSourceExpressionBuilder(DataSource.Expression, Context).BuildLoadExpression(!deferPaging);
+            CancellationToken.ThrowIfCancellationRequested();
             if(Context.HasGroup) {
-                var data = DataSource.Provider.CreateQuery<GroupResult>(expression).AsEnumerable();
+                var data = DataSource.Provider.Execute<IEnumerable<GroupResult>>(expression);
                 result.Data = data;
             } else {
                 var data = DataSource.Provider.CreateQuery<T>(expression).AsEnumerable();
                 result.TotalCount = ExecTotalCount(data);
                 result.Summary = ExecSummary(data);
                 result.Data = Paginate(data);
-                CancellationToken.ThrowIfCancellationRequested();
             }
 
             return Task.FromResult(result);
@@ -40,7 +40,6 @@ namespace DataProcessor {
             return data.Cast<object>().Count();
         }
 
-        // TODO: Use expression instead
         private object[] ExecSummary(IEnumerable data) {
             return Context.HasSummary ?
                 new AggregateExecutor<T>(data, Context.Summary).Execute() :

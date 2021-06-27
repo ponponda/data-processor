@@ -44,6 +44,12 @@ namespace DataProcessor {
         public bool HasSort => !IsEmpty(Sort);
     }
 
+    // group summary
+    partial class DataSourceLoadContext {
+        public SummaryInfo[] GroupSummary => Options.GroupSummary;
+        public bool HasGroupSummary => !IsEmpty(GroupSummary);
+    }
+
     // summary
     partial class DataSourceLoadContext {
         public SummaryInfo[] Summary => Options.Summary;

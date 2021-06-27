@@ -23,7 +23,8 @@ namespace DataProcessor.Tests {
 
         List<MockData> source = new List<MockData> {
             new MockData { Id = 1, Name = "Mock A", NullableInt = 1, Date = new DateTime(2021 ,1 ,1) },
-            new MockData { Id = 2, Name = "Test B",
+            new MockData { Id = 2, Name = "Mock A", NullableInt = 2, Date = new DateTime(2021 ,1 ,1) },
+            new MockData { Id = 3, Name = "Test B",
                 Child = new MockData.MockChild {
                 Id = 2, Name = "Child 1-1",
                 Child = new MockData.MockChild {
@@ -33,19 +34,30 @@ namespace DataProcessor.Tests {
         };
 
         [Test()]
-        public void Load() {
+        public void Filter() {
             Assert.AreEqual(1, DataProcessor.Load(source, new DataSourceLoadOption {
-                Filter = new object[] { new object[] { "Id", "=", 2 }, new object[] { "Child.Id", "=", 2 } },
+                Filter = new object[] { new object[] { "Id", "=", 2 } },
             }).TotalCount);
-            //Assert.AreEqual(1, DataProcessor.Load(source, new TestLoadOption {
-            //    Filter = new object[] { "NullableInt", "=", 1 },
-            //}).TotalCount);
-            //Assert.AreEqual(0, DataProcessor.Load(source, new TestLoadOption {
-            //    Filter = new object[] { "Date", ">", new DateTime(2021, 1, 1) },
-            //}).TotalCount);
-            //Assert.AreEqual(1, DataProcessor.Load(source, new TestLoadOption {
-            //    Filter = new object[] { "Child.Id", "=", 2 },
-            //}).TotalCount);
+            Assert.AreEqual(1, DataProcessor.Load(source, new TestLoadOption {
+                Filter = new object[] { "Child.Id", "=", 2 },
+            }).TotalCount);
+        }
+
+        [Test()]
+        public void Filter_And() {
+            var result = DataProcessor.Load(source, new DataSourceLoadOption {
+                Filter = new object[] { new object[] { "Id", "=", 2 }, new object[] { "Child.Id", "=", 2 } },
+            });
+            Assert.AreEqual(0, result.TotalCount);
+        }
+
+        [Test()]
+        public void Summary() {
+            var options = new TestLoadOption {
+                Summary = new[] { new SummaryInfo { Field = "Id", Type = "sum" } },
+            };
+            var data = DataProcessor.Load(source, options);
+            Assert.AreEqual(6, data.Summary[0]);
         }
 
         [Test()]
@@ -55,10 +67,10 @@ namespace DataProcessor.Tests {
             };
 
             var data = DataProcessor.Load(source, options).Data.Cast<MockData>();
-            var first = data.ElementAt(0);
-            var second = data.ElementAt(1);
+            var first = data.First();
+            var last = data.Last();
             Assert.Null(first.Child);
-            Assert.AreEqual("Child 2-1", second.Child.Child.Name);
+            Assert.AreEqual("Child 2-1", last.Child.Child.Name);
         }
 
         [Test()]
@@ -71,6 +83,36 @@ namespace DataProcessor.Tests {
         }
 
         [Test()]
+        public void Group_Nested() {
+            var options = new TestLoadOption {
+                Group = new[] { "Id", "Name" },
+            };
+            var groups = DataProcessor.Load(source, options).Data.Cast<GroupResult>();
+            Assert.AreEqual(1, groups.First().Key);
+            Assert.AreEqual("Mock A", groups.First().Items.Cast<GroupResult>().First().Key);
+        }
+
+        [Test()]
+        public void GroupSummary() {
+            var options = new TestLoadOption {
+                Group = new[] { "Name" },
+                GroupSummary = new[] {
+                new SummaryInfo { Field = "Id", Type = "avg" },
+                new SummaryInfo { Field = "Id", Type = "count" },
+                new SummaryInfo { Field = "Id", Type = "min" },
+                new SummaryInfo { Field = "Id", Type = "max" },
+                new SummaryInfo { Field = "Id", Type = "sum" },
+            }
+            };
+            var groups = DataProcessor.Load(source, options).Data.Cast<GroupResult>();
+            Assert.AreEqual(1.5, groups.First().Summary[0]);
+            Assert.AreEqual(2, groups.First().Summary[1]);
+            Assert.AreEqual(1, groups.First().Summary[2]);
+            Assert.AreEqual(2, groups.First().Summary[3]);
+            Assert.AreEqual(3, groups.First().Summary[4]);
+        }
+
+        [Test()]
         public void Sort() {
             var options = new TestLoadOption {
                 Sort = new[] {
@@ -79,7 +121,7 @@ namespace DataProcessor.Tests {
             };
 
             var firstId = DataProcessor.Load(source, options).Data.Cast<MockData>().First().Id;
-            Assert.AreEqual(2, firstId);
+            Assert.AreEqual(3, firstId);
         }
     }
 }
