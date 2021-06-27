@@ -54,7 +54,7 @@ namespace DataProcessor.Tests {
         [Test()]
         public void Summary() {
             var options = new TestLoadOption {
-                Summary = new[] { new SummaryInfo { Field = "Id", Type = "sum" } },
+                TotalSummary = new[] { new SummaryInfo { Field = "Id", Type = "sum" } },
             };
             var data = DataProcessor.Load(source, options);
             Assert.AreEqual(6, data.Summary[0]);
@@ -76,7 +76,7 @@ namespace DataProcessor.Tests {
         [Test()]
         public void Group() {
             var options = new TestLoadOption {
-                Group = new[] { "Id" },
+                Group = new[] { new GroupingInfo { Field = "Id" } },
             };
             var groups = DataProcessor.Load(source, options).Data.Cast<GroupResult>();
             Assert.AreEqual(1, groups.First().Key);
@@ -85,7 +85,10 @@ namespace DataProcessor.Tests {
         [Test()]
         public void Group_Nested() {
             var options = new TestLoadOption {
-                Group = new[] { "Id", "Name" },
+                Group = new[] {
+                    new GroupingInfo { Field = "Id" },
+                    new GroupingInfo { Field = "Name" }
+                },
             };
             var groups = DataProcessor.Load(source, options).Data.Cast<GroupResult>();
             Assert.AreEqual(1, groups.First().Key);
@@ -95,14 +98,16 @@ namespace DataProcessor.Tests {
         [Test()]
         public void GroupSummary() {
             var options = new TestLoadOption {
-                Group = new[] { "Name" },
+                Group = new[] {
+                    new GroupingInfo { Field = "Name" }
+                },
                 GroupSummary = new[] {
                 new SummaryInfo { Field = "Id", Type = "avg" },
                 new SummaryInfo { Field = "Id", Type = "count" },
                 new SummaryInfo { Field = "Id", Type = "min" },
                 new SummaryInfo { Field = "Id", Type = "max" },
                 new SummaryInfo { Field = "Id", Type = "sum" },
-            }
+            },
             };
             var groups = DataProcessor.Load(source, options).Data.Cast<GroupResult>();
             Assert.AreEqual(1.5, groups.First().Summary[0]);
@@ -110,6 +115,26 @@ namespace DataProcessor.Tests {
             Assert.AreEqual(1, groups.First().Summary[2]);
             Assert.AreEqual(2, groups.First().Summary[3]);
             Assert.AreEqual(3, groups.First().Summary[4]);
+        }
+
+        [Test()]
+        public void GroupAndTotalSummary() {
+            var options = new TestLoadOption {
+                Group = new[] {
+                    new GroupingInfo { Field = "Name" }
+                },
+                GroupSummary = new[] {
+                new SummaryInfo { Field = "Id", Type = "sum" },
+            },
+                TotalSummary = new[] {
+
+                new SummaryInfo { Field = "Id", Type = "sum" },
+            }
+            };
+            var result = DataProcessor.Load(source, options);
+            var groups = result.Data.Cast<GroupResult>();
+            Assert.AreEqual(3, groups.First().Summary[0]);
+            Assert.AreEqual(6, result.Summary[0]);
         }
 
         [Test()]

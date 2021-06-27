@@ -17,7 +17,6 @@ namespace DataProcessor {
             AddFilter();
             AddSort();
             AddSelect();
-            AddGroup();
             if(paginate)
                 AddPaging();
             return Expression;
@@ -26,6 +25,11 @@ namespace DataProcessor {
         public Expression BuildCountExpression() {
             AddFilter();
             AddCount();
+            return Expression;
+        }
+
+        public  Expression BuildGroupExpression() {
+            AddGroup();
             return Expression;
         }
 

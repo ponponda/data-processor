@@ -6,24 +6,24 @@ using System.Linq.Expressions;
 
 namespace DataProcessor.Handler {
     class GroupExpressionHandler : ExpressionHandler {
-        private string[] Fields;
+        private IEnumerable<string> Fields;
         private SummaryInfo[] GroupSummaries = new SummaryInfo[0];
         private List<ParameterExpression> ParameterExpressions = new List<ParameterExpression>();
 
-        public GroupExpressionHandler(Type itemType, string[] fields) : base(itemType) {
-            Fields = fields;
+        public GroupExpressionHandler(Type itemType, GroupingInfo[] fields) : base(itemType) {
+            Fields = fields.Select(e => e.Field);
 
             // predefined available parameters
             var dataItem = CreateItemParam();
-            for(var i = 0; i < Fields.Length; i++) {
-                var f = Fields[Fields.Length - 1 - i];
+            for(var i = 0; i < Fields.Count(); i++) {
+                var f = Fields.ElementAt(Fields.Count() - 1 - i);
                 var member = Expression.PropertyOrField(dataItem, f);
                 var groupType = typeof(IGrouping<,>).MakeGenericType(member.Type, ItemType);
                 ParameterExpressions.Add(Expression.Parameter(groupType, "g" + i));
             }
         }
 
-        public GroupExpressionHandler(Type itemType, string[] fields, SummaryInfo[] groupSummaries) : this(itemType, fields) {
+        public GroupExpressionHandler(Type itemType, GroupingInfo[] fields, SummaryInfo[] groupSummaries) : this(itemType, fields) {
             GroupSummaries = groupSummaries;
         }
 
@@ -52,7 +52,7 @@ namespace DataProcessor.Handler {
                 var groupResult = BuildGroup(parameter, result);
 
                 index++;
-                var last = index == Fields.Length;
+                var last = index == Fields.Count();
                 // group
                 if(last) {
                     result = EnumerableCall(nameof(Enumerable.GroupBy), new Type[] { ItemType, member.ReturnType }, sourceExpr, member);

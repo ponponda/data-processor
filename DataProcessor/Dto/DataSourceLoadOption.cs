@@ -7,12 +7,12 @@ namespace DataProcessor.Dto {
         /// </summary>
         public IList Filter { get; set; }
         public string[] Select { get; set; }
-        public string[] Group { get; set; }
+        public GroupingInfo[] Group { get; set; }
         public SortingInfo[] Sort { get; set; }
         /// <summary>
         /// A total summary expression
         /// </summary>
-        public SummaryInfo[] Summary { get; set; }
+        public SummaryInfo[] TotalSummary { get; set; }
         /// <summary>
         /// A group summary expression
         /// </summary>

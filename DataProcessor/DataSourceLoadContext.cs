@@ -21,7 +21,7 @@ namespace DataProcessor {
 
     // group
     partial class DataSourceLoadContext {
-        public string[] Group => Options.Group;
+        public GroupingInfo[] Group => Options.Group;
         public bool HasGroup => !IsEmpty(Group);
     }
 
@@ -44,15 +44,12 @@ namespace DataProcessor {
         public bool HasSort => !IsEmpty(Sort);
     }
 
-    // group summary
-    partial class DataSourceLoadContext {
-        public SummaryInfo[] GroupSummary => Options.GroupSummary;
-        public bool HasGroupSummary => !IsEmpty(GroupSummary);
-    }
-
     // summary
     partial class DataSourceLoadContext {
-        public SummaryInfo[] Summary => Options.Summary;
-        public bool HasSummary => !IsEmpty(Summary);
+        public SummaryInfo[] TotalSummary => Options.TotalSummary;
+        public bool HasTotalSummary => !IsEmpty(TotalSummary);
+        public SummaryInfo[] GroupSummary => Options.GroupSummary;
+        public bool HasGroupSummary => !IsEmpty(GroupSummary);
+        public bool HasSummary => HasTotalSummary || HasGroup;
     }
 }
