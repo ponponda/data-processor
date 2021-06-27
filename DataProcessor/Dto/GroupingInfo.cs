@@ -3,6 +3,6 @@
 namespace DataProcessor.Dto {
     public class GroupingInfo {
         public string Field { get; set; }
-        //public bool Expaneded { get; set; }
+        //public bool Expanded { get; set; }
     }
 }

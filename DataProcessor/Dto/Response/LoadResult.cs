@@ -9,7 +9,5 @@ namespace DataProcessor.Dto {
         public IEnumerable Data { get; set; }
         [JsonProperty("summary", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public object[] Summary { get; set; }
-        [JsonProperty("groupSummary", DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public object[] GroupSummary { get; set; }
     }
 }
